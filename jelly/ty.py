@@ -8,3 +8,4 @@ HoodFunc = Callable[[np.ndarray, int, int, int], np.ndarray]
 StepFunc = Callable[[np.ndarray, ...], np.ndarray]
 RGB = Tuple[int, int, int]
 CMAP = List[RGB]
+DTYPE = np.int8

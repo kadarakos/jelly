@@ -7,7 +7,7 @@ import cython
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef cyclic_rule(int value, DTYPE_t[:] neighbors, int n_states, int threshold):
+cdef DTYPE_t cyclic_rule(int value, DTYPE_t[:] neighbors, int n_states, int threshold):
     successor = (value + 1) % n_states
     cdef Py_ssize_t size = neighbors.shape[0]
     cdef Py_ssize_t i
