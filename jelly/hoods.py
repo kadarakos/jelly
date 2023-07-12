@@ -1,7 +1,9 @@
 import numpy as np
 from enum import Enum
 from functools import partial
-
+from .cyhoods import moore as cmoore
+from .cyhoods import moore_rim as cmoore_rim
+from .cyhoods import cross as ccross
 from .util import EnumChoices
 
 
@@ -97,10 +99,13 @@ def cross(C: np.ndarray, i: int, j: int, size: int) -> np.ndarray:
 
 class HoodFuncs(Enum):
     moore = partial(moore)
+    cmoore = partial(cmoore)
     moore_rim = partial(moore_rim)
+    cmoore_rim = partial(cmoore_rim)
     neumann = partial(neumann)
     neumann_rim = partial(neumann_rim)
     cross = partial(cross)
+    ccross = partial(ccross)
 
 
 HoodChoices = EnumChoices("HoodChoices", HoodFuncs)

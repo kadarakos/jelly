@@ -9,6 +9,7 @@ from functools import partial
 from .ty import HoodFunc, CMAP
 from .hoods import HoodChoices
 from .color import ColorChoices
+from .rules import cyclic_rule
 
 
 def cca_step(
@@ -24,20 +25,15 @@ def cca_step(
     height, width = C.shape
     # XXX Padding is expensive to do at each step.
     C_padded = np.pad(C, (size, size), constant_values=(padding, padding))
-    out = np.empty((height, width), dtype="uint8")
+    out = np.empty((height, width), dtype="int8")
     out_rgb = np.empty((height, width, 3), dtype="uint8")
     for i in range(size, height):
         for j in range(size, width):
             value = C_padded[i, j]
-            successor = (value + 1) % n_states
             neighbors = neighborhood(C_padded, i, j, size)
-            n_successors = (neighbors == successor).sum()
-            if n_successors >= threshold:
-                new_val = successor
-            else:
-                new_val = C_padded[i, j]
-            out[i - size, j - size] = new_val
-            out_rgb[i, j, :] = cmap[new_val % len(cmap)]
+            new_value = cyclic_rule(value, neighbors, n_states, threshold)
+            out[i - size, j - size] = new_value
+            out_rgb[i, j, :] = cmap[new_value % len(cmap)]
     return out, out_rgb
 
 
@@ -65,9 +61,10 @@ def cca_video(
         padding=-1
     )
     with imageio.get_writer(output_file, mode='I') as writer:
-        C = np.random.randint(0, states, (height, width))
+        C = np.random.randint(0, states, (height, width), dtype="int8")
+        C_padded = np.pad(C, (size, size), constant_values=(-1, -1))
         for step in tqdm.tqdm(range(steps)):
-            C, C_rgb = step_func(C)
+            C_padded, C_rgb = step_func(C_padded)
             writer.append_data(C_rgb)
 
 
