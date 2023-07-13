@@ -23,12 +23,20 @@ def cca_video(
     size: Optional[int] = 1
 ):
     colormap = ColorChoices.resolve(colormap.name)
+    C = np.random.randint(0, states, (height, width), dtype="int8")
+    C_padded = np.pad(C, (size, size), constant_values=(-1, -1))
+    # XXX I don't like it but its faster to allocate C_rgb once and mutate.
+    C_rgb = np.empty((height, width, 3), dtype="uint8")
     with imageio.get_writer(output_file, mode='I') as writer:
-        C = np.random.randint(0, states, (height, width), dtype="int8")
-        C_padded = np.pad(C, (size, size), constant_values=(-1, -1))
         for step in tqdm.tqdm(range(steps)):
-            C_padded, C_rgb = cyclic_step(
-                C_padded, states, neighborhood.name, colormap, threshold, size
+            C_padded = cyclic_step(
+                C_padded,
+                states,
+                neighborhood.name,
+                colormap,
+                threshold,
+                size,
+                C_rgb,
             )
             writer.append_data(C_rgb)
 
