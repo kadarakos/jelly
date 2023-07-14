@@ -5,9 +5,10 @@ import typer
 
 from typing import Optional
 
-from .cyhoods import HoodChoices
+from .cyhoods import HoodChoices, hood_size
 from .color import ColorChoices
 from .updates import cyclic_step
+from .ty import DTYPE, IMGTYPE
 
 
 def cca_video(
@@ -22,13 +23,27 @@ def cca_video(
     threshold: Optional[int] = 1,
     size: Optional[int] = 1
 ):
+    neighborhood = neighborhood.name
     colormap = ColorChoices.resolve(colormap.name)
+    C = np.random.randint(0, states, (height, width), dtype=DTYPE)
+    C_padded = np.pad(C, (size, size), constant_values=(-1, -1))
+    # XXX I don't like it but its faster to allocate C_rgb once and mutate.
+    C_rgb = np.empty((height, width, 3), dtype=IMGTYPE)
+    neighborhood_size = hood_size(neighborhood, size)
+    neighbors = np.empty((neighborhood_size, ), dtype=DTYPE)
     with imageio.get_writer(output_file, mode='I') as writer:
-        C = np.random.randint(0, states, (height, width), dtype="int8")
-        C_padded = np.pad(C, (size, size), constant_values=(-1, -1))
         for step in tqdm.tqdm(range(steps)):
-            C_padded, C_rgb = cyclic_step(
-                C_padded, states, neighborhood.name, colormap, threshold, size
+            out = np.empty(C_padded.shape, dtype=DTYPE)
+            C_padded = cyclic_step(
+                C_padded,
+                states,
+                neighborhood,
+                neighbors,
+                colormap,
+                threshold,
+                size,
+                out,
+                C_rgb,
             )
             writer.append_data(C_rgb)
 

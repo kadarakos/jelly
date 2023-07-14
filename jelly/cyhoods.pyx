@@ -1,8 +1,7 @@
 # cython: binding=True, infer_types=True
-# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+# distutils: language = c++
 import numpy as np
 cimport numpy as cnp
-from cython.parallel import prange
 import cython
 from .typedefs cimport DTYPE_t, hoodfunc_t
 from .ty import DTYPE
@@ -11,7 +10,7 @@ from enum import Enum
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef cnp.ndarray[DTYPE_t, ndim=1] moore(const DTYPE_t[:, :] C, int i, int j, int size):
+cdef void moore(const DTYPE_t[:, :] C, int i, int j, int size, DTYPE_t[:] out) noexcept nogil:
     """
         + + + + +
         + + + + +
@@ -19,25 +18,19 @@ cdef cnp.ndarray[DTYPE_t, ndim=1] moore(const DTYPE_t[:, :] C, int i, int j, int
         + + + + +
         + + + + +
     """
-    cdef int n = 0
-    for s in range(1, size + 1):
-        n += 8 * s
     cdef int p = 0
-    out = np.empty(n, dtype=DTYPE)
-    cdef DTYPE_t[:] out_view = out
     for i_ in range(i - size, i + size + 1):
         for j_ in range(j - size, j + size + 1):
             if i_ == i and j_ == j:
                 continue
-            out_view[p] = C[i_, j_]
+            out[p] = C[i_, j_]
             p += 1
-    return out
 
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef cnp.ndarray[DTYPE_t, ndim=1] moore_rim(const DTYPE_t[:, :] C, int i, int j, int size):
+cdef void moore_rim(const DTYPE_t[:, :] C, int i, int j, int size, DTYPE_t[:] out) noexcept nogil:
     """
         + + + + +
         +       +
@@ -45,27 +38,25 @@ cdef cnp.ndarray[DTYPE_t, ndim=1] moore_rim(const DTYPE_t[:, :] C, int i, int j,
         +       +
         + + + + +
     """
-    cdef int n = 8 * size
     cdef int p = 0
-    out = np.empty(n, dtype="int8")
-    cdef DTYPE_t[:] out_view = out
-    cdef int row
-    cdef int column
-    for row in (i - size, i + size):
-        for j_ in range(j - size, j + size + 1):
-            out_view[p] = C[row, j_]
-            p += 1
-    for column in (j - size, j + size):
-        for i_ in range(i - size + 1, i + size):
-            out_view[p] = C[i_, column]
-            p += 1
-    return out
+    for j_ in range(j - size, j + size + 1):
+        out[p] = C[i - size, j_]
+        p += 1
+    for j_ in range(j - size, j + size + 1):
+        out[p] = C[i + size, j_]
+        p += 1
+    for i_ in range(i - size + 1, i + size):
+        out[p] = C[i_, j - size]
+        p += 1
+    for i_ in range(i - size + 1, i + size):
+        out[p] = C[i_, j + size]
+        p += 1
 
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef cnp.ndarray[DTYPE_t, ndim=1] cross(const DTYPE_t[:, :] C, int i, int j, int size):
+cdef void cross(const DTYPE_t[:, :] C, int i, int j, int size, DTYPE_t[:] out) noexcept nogil:
     """
             +
             +
@@ -73,21 +64,17 @@ cdef cnp.ndarray[DTYPE_t, ndim=1] cross(const DTYPE_t[:, :] C, int i, int j, int
             +
             +
     """
-    cdef int n = size * 4
     cdef int p = 0
-    out = np.empty(n, dtype="int8")
-    cdef DTYPE_t[:] out_view = out
     for i_ in range(i - size, i + size + 1):
         if i_ == i:
             continue
-        out_view[p] = C[i_, j]
+        out[p] = C[i_, j]
         p += 1
     for j_ in range(j - size, j + size + 1):
         if j_ == j:
             continue
-        out_view[p] = C[i, j_]
+        out[p] = C[i, j_]
         p += 1
-    return out
 
 
 cdef hoodfunc_t hood_by_name(str name):
@@ -97,6 +84,18 @@ cdef hoodfunc_t hood_by_name(str name):
         return moore_rim
     elif name == "cross":
         return cross
+
+
+cpdef int hood_size(str name, int size):
+    cdef int n = 0
+    if name == "moore":
+        for s in range(1, size + 1):
+            n += 8 * s
+    elif name == "moore_rim":
+        n = 8 * size
+    elif name == "cross":
+        n = 4 * size
+    return n
 
 
 class HoodChoices(str, Enum):
