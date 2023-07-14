@@ -7,10 +7,10 @@ import cython
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef DTYPE_t cyclic_rule(int value, DTYPE_t[:] neighbors, int n_states, int threshold):
+@cython.cdivision(True)
+cdef DTYPE_t cyclic_rule(int value, DTYPE_t[:] neighbors, int n_states, int threshold) nogil:
     successor = (value + 1) % n_states
     cdef Py_ssize_t size = neighbors.shape[0]
-    cdef Py_ssize_t i
     cdef int n_successors = 0
     for i in range(size):
         if neighbors[i] == successor:
