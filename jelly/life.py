@@ -4,6 +4,7 @@ import imageio
 import tqdm
 
 from typing import List, Optional
+from pydantic import validate_call
 
 from .color import ColorChoices
 from .ty import DTYPE, IMGTYPE
@@ -12,6 +13,7 @@ from .updates import lifelike_step
 from .util import enlarge_img
 
 
+@validate_call
 def life_video(
     output_file: str,
     steps: int,

@@ -18,6 +18,6 @@ class EnumChoices:
         return getattr(self.enumeration, option).value
 
 
-def enlarge_img(arr: np.ndarray, ratio: int):
+def enlarge_img(arr: np.ndarray, ratio: int) -> np.ndarray:
     big = np.kron(arr, np.ones((ratio, ratio, 1), dtype=IMGTYPE))
     return big

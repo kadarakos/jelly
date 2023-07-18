@@ -1,0 +1,12 @@
+automaton:
+  name: "lifelike"
+  steps: 500
+  height: 100
+  width: 100
+  ratio: 10
+  colormap: "blues"
+  B:
+    - 3
+  S:
+    - 2
+    - 3
