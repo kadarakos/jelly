@@ -4,6 +4,7 @@ import tqdm
 import typer
 
 from typing import Optional
+from pydantic import validate_call
 
 from .cyhoods import HoodChoices, hood_size
 from .color import ColorChoices
@@ -11,6 +12,7 @@ from .updates import cyclic_step
 from .ty import DTYPE, IMGTYPE
 
 
+@validate_call
 def cca_video(
     output_file: str,
     steps: int,
@@ -19,7 +21,6 @@ def cca_video(
     states: int,
     neighborhood: HoodChoices,
     colormap: ColorChoices.options,
-    *,
     threshold: Optional[int] = 1,
     size: Optional[int] = 1
 ):
