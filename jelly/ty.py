@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Callable, Tuple, List
+from typing import Callable, Tuple, List, Dict, Any
 
 
 # TODO this typing is pretty shit and its just a sketch.
@@ -10,3 +10,4 @@ RGB = Tuple[int, int, int]
 CMAP = List[RGB]
 DTYPE = np.int8
 IMGTYPE = np.uint8
+ConfigDict = Dict[str, Any]
