@@ -1,0 +1,9 @@
+automaton: "majority"
+steps: 300
+height: 720
+width: 1280
+ratio: 1
+cmap: "bw"
+states: 4
+neighborhood: "cross"
+size: 1
