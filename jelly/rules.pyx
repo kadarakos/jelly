@@ -1,9 +1,11 @@
 # cython: binding=True, infer_types=True
+# distutils: language = c++
 cimport numpy as cnp
 import numpy as np
 from .typedefs cimport DTYPE_t
 import cython
 from libc.stdlib cimport malloc, free
+from libcpp.unordered_map cimport unordered_map, pair
 
 
 
@@ -49,21 +51,18 @@ cdef DTYPE_t lifelike_rule(int value, DTYPE_t[:] neighbors, DTYPE_t[:] B, DTYPE_
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef DTYPE_t majority_rule(int value, DTYPE_t[:] neighbors, int n_states) nogil:
-    if value == -1:
-        return value
-    cdef int *counts = <int *> malloc(n_states * sizeof(int))
-    cdef int maxi = -1
-    cdef DTYPE_t argmaxi = -1
-    cdef int i
-    cdef DTYPE_t neighbor
+cdef DTYPE_t majority_rule(int value, DTYPE_t[:] neighbors) nogil:
+    cdef unordered_map[DTYPE_t, int] counter
+    cdef int max_count = -1
+    cdef DTYPE_t max_item
+    cdef int neighbor
+    cdef pair[DTYPE_t, int] count_pair
     for i in range(neighbors.shape[0]):
         neighbor = neighbors[i]
-        counts[neighbor] += 1
-    for i in range(n_states):
-        count = counts[i]
-        if count > maxi:
-            maxi = count
-            argmaxi = i
-    free(counts)
-    return argmaxi
+        if neighbor != -1:
+            counter[neighbor] += 1
+    for count_pair in counter:
+        if count_pair.second > max_count:
+            max_count = count_pair.second
+            max_item = count_pair.first
+    return max_item
