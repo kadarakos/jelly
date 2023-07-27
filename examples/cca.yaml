@@ -1,0 +1,10 @@
+automaton: "cca"
+steps: 500
+height: 720
+width: 1280
+ratio: 1
+cmap: "unspoken"
+states: 3
+neighborhood: "cross"
+size: 5
+threshold: 6
