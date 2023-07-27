@@ -98,7 +98,7 @@ cpdef int hood_size(str name, int size):
     return n
 
 
-class HoodChoices(str, Enum):
+class HoodOptions(str, Enum):
     moore = "moore"
     moore_rim = "moore_rim"
     cross = "cross"
