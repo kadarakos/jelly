@@ -1,10 +1,10 @@
 automaton: "cca"
-steps: 500
+steps: 1000
 height: 720
 width: 1280
 ratio: 1
 cmap: "unspoken"
-states: 3
-neighborhood: "cross"
-size: 5
+states: 10
+neighborhood: "neumann"
+size: 4
 threshold: 6
