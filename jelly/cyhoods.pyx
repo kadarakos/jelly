@@ -6,6 +6,7 @@ import cython
 from .typedefs cimport DTYPE_t, hoodfunc_t
 from .ty import DTYPE
 from enum import Enum
+from libc.stdlib cimport abs as iabs
 
 
 @cython.boundscheck(False)
@@ -77,6 +78,27 @@ cdef void cross(const DTYPE_t[:, :] C, int i, int j, int size, DTYPE_t[:] out) n
         p += 1
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef void neumann(const DTYPE_t[:, :] C, int i, int j, int size, DTYPE_t[:] out) noexcept nogil:
+    """
+            +
+          + + +
+        + + x + +
+          + + +
+            +
+    """
+    cdef int p = 0
+    for i_ in range(i - size, i + size + 1):
+        for j_ in range(j - size, j + size + 1):
+            if i_ == i and j_ == j:
+                continue
+            elif iabs(i_ - i) + iabs(j_ - j) <= size:
+                out[p] = C[i_, j_]
+                p += 1
+
+
+
 cdef hoodfunc_t hood_by_name(str name):
     if name == "moore":
         return moore
@@ -84,6 +106,8 @@ cdef hoodfunc_t hood_by_name(str name):
         return moore_rim
     elif name == "cross":
         return cross
+    elif name == "neumann":
+        return neumann
 
 
 cpdef int hood_size(str name, int size):
@@ -95,6 +119,8 @@ cpdef int hood_size(str name, int size):
         n = 8 * size
     elif name == "cross":
         n = 4 * size
+    elif name == "neumann":
+        n = (4 + (size - 1) * 2) * size
     return n
 
 
@@ -102,3 +128,4 @@ class HoodOptions(str, Enum):
     moore = "moore"
     moore_rim = "moore_rim"
     cross = "cross"
+    neumann = "neumann"
